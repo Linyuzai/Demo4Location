@@ -60,22 +60,21 @@ class MainActivity : AppCompatActivity() {
                 } else mText.text = "权限被拒绝"
             }
         }
-        mNetworkButton.defaultText("开始基站定位").activeText("停止基站定位").setBeforeFilter { _, _ ->
-            var isPass = false
+        mNetworkButton.defaultText("开始网络定位").activeText("停止网络定位").setBeforeFilter { _, _ ->
+            if (mNetwork.isNetworkEnable())
+                return@setBeforeFilter true
+            else
+                mText.text = LocationMessage.getMessage(LocationMessage.NETWORK_NOT_AVAILABLE)
+            false
+        }.setOnStateClickListener { _, state ->
             mRxPermissions.request(Manifest.permission.ACCESS_FINE_LOCATION).subscribe {
                 if (it) {
-                    if (mNetwork.isNetworkEnable())
-                        isPass = true
-                    else
-                        mText.text = LocationMessage.getMessage(LocationMessage.NETWORK_NOT_AVAILABLE)
+                    if (state == StateButton.DEFAULT)
+                        mNetwork.receive()
+                    else if (state == StateButton.ACTIVE)
+                        mNetwork.dispose()
                 } else mText.text = "权限被拒绝"
             }
-            return@setBeforeFilter isPass
-        }.setOnStateClickListener { _, state ->
-            if (state == StateButton.DEFAULT)
-                mNetwork.receive()
-            else if (state == StateButton.ACTIVE)
-                mNetwork.dispose()
         }
     }
 }
